@@ -30,7 +30,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -67,38 +69,10 @@ public class IndexServices extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
-		String action = request.getServletPath();
-		try {
-			switch(action){
-		
-			case "/savearCandidato":
-				savearCandidato(request,response);
-				break;
-			
-			case "/savearVotante":
-				savearVotante(request,response);
-				break;
-			case "/formularioValidacion":
-				showValidarVotante(request,response);
-				break;
-			case "/validarVotante":
-				validarVotante(request,response);
-				break;
-			case "/registrarVoto":
-				registrarVoto(request,response);
-				break;
-			default:
-				showInscripcionCandidato(request,response);
-				break;
-			}
-		}catch(SQLException e)
-		{
-			throw new ServletException(e);
-		}
-		
-	}
+    @GetMapping("/")
+    public String home(){
+        return "Hello World!";
+    }
 
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
@@ -107,6 +81,7 @@ public class IndexServices extends HttpServlet {
 		// TODO Auto-generated method stub
 		doGet(request, response);
 	}
+
     @GetMapping("/inscripcionCandidato")
 	private void showInscripcionCandidato(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 		List<Eleccion> elecciones = (List<Eleccion>) eleccionDao.findAll();
@@ -114,8 +89,8 @@ public class IndexServices extends HttpServlet {
 		RequestDispatcher dispatcher = request.getRequestDispatcher("JSP/inscripcionCandidatos.jsp");
 		dispatcher.forward(request, response); 
 	}
-	
-	private void savearCandidato(HttpServletRequest request, HttpServletResponse response)throws ServletException, SQLException, IOException {
+    @GetMapping("/escogeCandidato")
+	private void escogeCandidato(HttpServletRequest request, HttpServletResponse response)throws ServletException, SQLException, IOException {
 		String documento = request.getParameter("documento");
 		String nombre = request.getParameter("nombre");
 		String apellido = request.getParameter("apellido");
@@ -125,20 +100,18 @@ public class IndexServices extends HttpServlet {
 		this.candidatoDao.save(c);
 		response.sendRedirect("inscripcionCandidato");
 	}
-	@GetMapping("/inscripcionVotante") 
-	private void showInscripcionVotante(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	@RequestMapping("/inscripcionVotante") 
+	private String showInscripcionVotante(Model model)  {
 		// TODO Auto-generated method stub
 		List<Tipodocumento> tipodocumentos = (List<Tipodocumento>) tipodocumentoDao.findAll();
-		request.setAttribute("tipodocumentos",tipodocumentos);
+		model.addAttribute("tipodocumentos",tipodocumentos);
 		
 		List<Eleccion> elecciones = (List<Eleccion>) eleccionDao.findAll();
-		request.setAttribute("elecciones", elecciones);
+		model.addAttribute("elecciones", elecciones);
 		
-		List<Estamento> estamentos = estamentoDao.findByEleccionBean(3);
-		request.setAttribute("estamentos", estamentos);
+	
 		
-		RequestDispatcher dispatcher = request.getRequestDispatcher("JSP/inscripcionVotante.jsp");
-		dispatcher.forward(request, response); 
+		return "inscripcionVotante";
 	}
 	
 	private void savearVotante(HttpServletRequest request, HttpServletResponse response) throws ServletException, SQLException, IOException {
@@ -182,7 +155,7 @@ public class IndexServices extends HttpServlet {
 		response.sendRedirect("inscripcionVotante");
 		
 	}
-	
+	 @GetMapping("/validarVotante") 
 	private void showValidarVotante(HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException  {
 		Integer id = Integer.parseInt(request.getParameter("id"));
 		String nombre = request.getParameter("nombre");
